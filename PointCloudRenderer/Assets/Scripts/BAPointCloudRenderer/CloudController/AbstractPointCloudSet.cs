@@ -111,7 +111,7 @@ namespace BAPointCloudRenderer.CloudController {
                 overallTightBoundingBox.Uz = Math.Max(overallTightBoundingBox.Uz, tightBoundingBox.Uz);
             }
             if (moveCenterToTransformPosition) {
-                waiterForBoundingBoxUpdate.WaitOne();
+                //waiterForBoundingBoxUpdate.WaitOne();
             }
         }
 
@@ -190,7 +190,7 @@ namespace BAPointCloudRenderer.CloudController {
                     {
                         //nothing to move along...
                         hasMoved = true;
-                        waiterForBoundingBoxUpdate.Set();
+                        //waiterForBoundingBoxUpdate.Set();
                     }
                     else if (!boundingBoxes.ContainsValue(null))
                     {
@@ -207,7 +207,7 @@ namespace BAPointCloudRenderer.CloudController {
                         overallTightBoundingBox.MoveAlong(moving);
 
                         hasMoved = true;
-                        waiterForBoundingBoxUpdate.Set();
+                        //waiterForBoundingBoxUpdate.Set();
                     }
                     else
                     {

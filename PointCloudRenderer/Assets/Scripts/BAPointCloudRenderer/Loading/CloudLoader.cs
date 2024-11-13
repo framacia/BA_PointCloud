@@ -277,7 +277,7 @@ namespace BAPointCloudRenderer.Loading {
             }
         }
 
-        private static BoundingBox CalculateBoundingBox(BoundingBox parent, int index) {
+        public static BoundingBox CalculateBoundingBox(BoundingBox parent, int index) {
             Vector3d min = parent.Min();
             Vector3d max = parent.Max();
             Vector3d size = parent.Size();
@@ -412,7 +412,7 @@ namespace BAPointCloudRenderer.Loading {
          * 012/012345/012345676/r0123456765.bin
          * 012/345/676/r012345676.bin
          */
-        private static byte[] FindAndLoadFile(string dataRPath, PointCloudMetaData metaData, string id, string fileending) {
+        public static byte[] FindAndLoadFile(string dataRPath, PointCloudMetaData metaData, string id, string fileending) {
             int levels = id.Length / metaData.hierarchyStepSize;
             string path = "";
             for (int i = 0; i < levels; i++) {
