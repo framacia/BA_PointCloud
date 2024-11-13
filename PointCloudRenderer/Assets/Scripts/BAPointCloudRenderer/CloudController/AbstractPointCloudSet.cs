@@ -2,7 +2,6 @@
 using BAPointCloudRenderer.Loading;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 using UnityEditor;
 using BAPointCloudRenderer.ObjectCreation;
@@ -40,11 +39,11 @@ namespace BAPointCloudRenderer.CloudController {
                                                                     double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity);
         private Dictionary<PointCloudLoader, BoundingBox> boundingBoxes = new Dictionary<PointCloudLoader, BoundingBox>();
         private Dictionary<PointCloudLoader, BoundingBox> tightBoundingBoxes = new Dictionary<PointCloudLoader, BoundingBox>();
-        private ManualResetEvent waiterForBoundingBoxUpdate = new ManualResetEvent(false);
+        //private ManualResetEvent waiterForBoundingBoxUpdate = new ManualResetEvent(false);
 
         private AbstractRenderer pRenderer;
 
-        private ManualResetEvent initializedEvent = new ManualResetEvent(false);
+        //private ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
         public void Start() {
             if (!moveCenterToTransformPosition)
@@ -55,16 +54,16 @@ namespace BAPointCloudRenderer.CloudController {
             if (pRenderer == null) {
                 throw new InvalidOperationException("PointRenderer has not been set!");
             }
-            initializedEvent.Set();
+            //initializedEvent.Set();
         }
 
         /// <summary>
         /// Returns true, iff Start has already been executed
         /// </summary>
-        public bool IsInitialized()
-        {
-            return initializedEvent.WaitOne(0);
-        }
+        // public bool IsInitialized()
+        // {
+        //     return initializedEvent.WaitOne(0);
+        // }
 
         /// <summary>
         /// Override this instead of Start!! Make sure to set the PointRenderer in here!!!
@@ -91,7 +90,7 @@ namespace BAPointCloudRenderer.CloudController {
         /// so this method should not be called in the main thread.
         /// </summary>
         public void UpdateBoundingBox(PointCloudLoader controller, BoundingBox boundingBox, BoundingBox tightBoundingBox) {
-            initializedEvent.WaitOne();
+            //initializedEvent.WaitOne();
             boundingBox.MoveAlong(moving);
             tightBoundingBox.MoveAlong(moving);
             lock (boundingBoxes) {
@@ -152,38 +151,38 @@ namespace BAPointCloudRenderer.CloudController {
         /// Adds a root node to the renderer. Should be called by the PC-Controller, which also has to call RegisterController and UpdateBoundingBox.
         /// </summary>
         public void AddRootNode(PointCloudLoader controller, Node node, PointCloudMetaData metaData) {
-            initializedEvent.WaitOne();
-            lock (pRenderer)
-            {
+            //initializedEvent.WaitOne();
+            // lock (pRenderer)
+            // {
                 pRenderer.AddRootNode(node, controller);
-            }
+            //}
         }
 
         /// <summary>
         /// Removes a point cloud
         /// </summary>
         public void RemoveRootNode(PointCloudLoader controller, Node node) {
-            lock (pRenderer)
-            {
+            // lock (pRenderer)
+            // {
                 pRenderer.RemoveRootNode(node, controller);
-            }
-            lock (boundingBoxes)
-            {
+            //}
+            // lock (boundingBoxes)
+            // {
                 boundingBoxes.Remove(controller);
                 tightBoundingBoxes.Remove(controller);
-            }
+            //}
         }
 
         /// <summary>
         /// Returns true, iff all the nodes are registered, have been moved to the center (if required) and the renderer is loaded.
         /// </summary>
         protected bool CheckReady() {
-            if (!IsInitialized())
-            {
-                return false;
-            }
-            lock (boundingBoxes)
-            {
+            // if (!IsInitialized())
+            // {
+            //     return false;
+            // }
+            // lock (boundingBoxes)
+            // {
                 if (!hasMoved)
                 {
                     if (boundingBoxes.Count == 0)
@@ -214,14 +213,14 @@ namespace BAPointCloudRenderer.CloudController {
                         return false;
                     }
                 }
-            }
+            //}
 
-            lock (pRenderer) {
+            //lock (pRenderer) {
                 //Checking, weither all RootNodes are there
                 if (pRenderer.GetRootNodeCount() != boundingBoxes.Count) {
                     return false;
                 }
-            }
+            //}
             return true;
         }
 

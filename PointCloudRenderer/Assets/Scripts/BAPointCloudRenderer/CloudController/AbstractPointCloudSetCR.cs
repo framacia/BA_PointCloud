@@ -31,7 +31,7 @@
 //
 //         void Start() {
 //             if (!moveCenterToTransformPosition) hasMoved = true;
-//             Initialize();
+//             Initialize();   
 //             if (pRenderer == null) {
 //                 throw new InvalidOperationException("PointRenderer has not been set!");
 //             }
