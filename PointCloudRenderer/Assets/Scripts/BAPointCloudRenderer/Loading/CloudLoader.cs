@@ -390,7 +390,7 @@ namespace BAPointCloudRenderer.Loading {
             }
             node.SetPoints(vertices, colors);
         }
-        private static void CalculateRGBA(ref Color[] colors, ref int offset, byte[] data, int pointByteSize, int numPoints, bool alpha)
+        public static void CalculateRGBA(ref Color[] colors, ref int offset, byte[] data, int pointByteSize, int numPoints, bool alpha)
         {
             int size = alpha ? 4 : 3;
 

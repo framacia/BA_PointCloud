@@ -550,6 +550,7 @@ MonoBehaviour:
   moveCenterToTransformPosition: 1
   showBoundingBox: 1
   meshConfiguration: {fileID: 394899952}
+  Loader: {fileID: 0}
   pointBudget: 1000000
   minNodeSize: 10
   nodesLoadedPerFrame: 15
@@ -615,7 +616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 830a9d4c15accb94ba7628d60d43cda9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cloudPath: D:\DTT\pointclouds\etteln_church
+  cloudPath: D:\DTT\repos\BA_PointCloud\PointCloudRenderer\Clouds\Lion
   streamingAssetsAsRoot: 0
   setController: {fileID: 1311969388}
   loadOnStart: 1

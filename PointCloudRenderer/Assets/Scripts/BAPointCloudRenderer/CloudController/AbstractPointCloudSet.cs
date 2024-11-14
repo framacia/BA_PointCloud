@@ -43,6 +43,8 @@ namespace BAPointCloudRenderer.CloudController {
 
         private AbstractRenderer pRenderer;
 
+        public PointCloudLoader Loader;
+
         //private ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
         public void Start() {

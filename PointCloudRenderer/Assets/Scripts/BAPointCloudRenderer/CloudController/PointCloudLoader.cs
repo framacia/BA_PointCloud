@@ -43,6 +43,7 @@ namespace BAPointCloudRenderer.CloudController
 
         private void Awake()
         {
+            setController.Loader = this;
             if (streamingAssetsAsRoot) cloudPath = Application.streamingAssetsPath + "/" + cloudPath;
         }
 
@@ -115,7 +116,7 @@ namespace BAPointCloudRenderer.CloudController
 
             //rootNode = CloudLoader.LoadHierarchyOnly(metaData);
             var waitForNode = StartCoroutine(LoadHierarchyOnly(metaData, (node) => { rootNode = node; }));
-            
+
             yield return waitForNode;
 
             setController.AddRootNode(this, rootNode, metaData);
@@ -159,7 +160,7 @@ namespace BAPointCloudRenderer.CloudController
             var waitFor = StartCoroutine(LoadHierarchy(dataRPath, metaData, rootNode));
 
             yield return waitFor;
-    
+
             callback.Invoke(rootNode);
         }
 
@@ -193,7 +194,8 @@ namespace BAPointCloudRenderer.CloudController
                     if ((configuration & (1 << j)) != 0)
                     {
                         //This is done twice for some nodes
-                        Node child = new Node(n.Name + j, metaData, CloudLoader.CalculateBoundingBox(n.BoundingBox, j), n);
+                        Node child = new Node(n.Name + j, metaData, CloudLoader.CalculateBoundingBox(n.BoundingBox, j),
+                            n);
 
                         n.SetChild(j, child);
                         nextNodes.Enqueue(child);
@@ -216,7 +218,130 @@ namespace BAPointCloudRenderer.CloudController
                 }
             }
         }
-        
+
+        public IEnumerator LoadPointsForNode(Node node)
+        {
+            string dataRPath = node.MetaData.cloudPath + node.MetaData.octreeDir + "\\r\\";
+            var waitForPoint = StartCoroutine(LoadPoints(dataRPath, node.MetaData, node));
+            yield return waitForPoint;
+        }
+
+        /// <summary>
+        /// Loads the points for just that one node
+        /// </summary>
+        /// <param name="dataRPath"></param>
+        /// <param name="metaData"></param>
+        /// <param name="node"></param>
+        private IEnumerator LoadPoints(string dataRPath, PointCloudMetaData metaData, Node node)
+        {
+            // in potree v2 type 2 nodes are proxies and their hierarchy 
+            // yearns to be loaded just-in-time.
+            // if (metaData.version == "2.0" && node.type == 2)
+            // {
+            //     LoadHierarchy(metaData, ref node);
+            // }
+            // byte[] data = metaData.version switch
+            // {
+            //     "2.0" => ReadFromFile(metaData.cloudPath + "octree.bin", (long)node.byteOffset, node.byteSize),
+            //     _ => FindAndLoadFile(dataRPath, metaData, node.Name, ".bin"),
+            // };
+            byte[] data = new byte[0];
+            var waitForData = StartCoroutine(FindAndLoadFile(dataRPath, metaData, node.Name, ".bin",
+                (newData) => { data = newData; }));
+            yield return waitForData;
+
+            int pointByteSize = metaData.pointByteSize;
+            int numPoints = data.Length / pointByteSize;
+            int offset = 0, toSetOff = 0;
+
+            Vector3[] vertices = new Vector3[numPoints];
+            Color[] colors = new Color[numPoints];
+            //Read in data
+            foreach (PointAttribute pointAttribute in metaData.pointAttributesList)
+            {
+                toSetOff = 0;
+                if (pointAttribute.name.ToUpper().Equals(PointAttributes.POSITION_CARTESIAN) ||
+                    pointAttribute.name.ToUpper().Equals(PointAttributes.POSITION))
+                {
+                    for (int i = 0; i < numPoints; i++)
+                    {
+                        //Reduction to single precision!
+                        //Note: y and z are switched
+                        float x = (float)(System.BitConverter.ToUInt32(data, offset + i * pointByteSize + 0) *
+                                          metaData.scale3d.x);
+                        float y = (float)(System.BitConverter.ToUInt32(data, offset + i * pointByteSize + 8) *
+                                          metaData.scale3d.z);
+                        float z = (float)(System.BitConverter.ToUInt32(data, offset + i * pointByteSize + 4) *
+                                          metaData.scale3d.y);
+                        vertices[i] = new Vector3(x, y, z);
+                    }
+
+                    toSetOff += 12;
+                }
+                else if (pointAttribute.name.ToUpper().Equals(PointAttributes.COLOR_PACKED))
+                {
+                    for (int i = 0; i < numPoints; i++)
+                    {
+                        byte r = data[offset + i * pointByteSize + 0];
+                        byte g = data[offset + i * pointByteSize + 1];
+                        byte b = data[offset + i * pointByteSize + 2];
+                        colors[i] = new Color32(r, g, b, 255);
+                    }
+
+                    toSetOff += 3;
+                }
+                else if (pointAttribute.name.ToUpper().Equals(PointAttributes.RGBA) ||
+                         pointAttribute.name.ToUpper().Equals(PointAttributes.RGB))
+                {
+                    if (metaData.version == "2.0")
+                    {
+                        CloudLoader.CalculateRGBA(ref colors, ref offset, data, pointByteSize, numPoints,
+                            pointAttribute.name.EndsWith("a"));
+                    }
+                    else
+                    {
+                        for (int i = 0; i < numPoints; i++)
+                        {
+                            byte r = data[offset + i * pointByteSize + 0];
+                            byte g = data[offset + i * pointByteSize + 1];
+                            byte b = data[offset + i * pointByteSize + 2];
+                            byte a = data[offset + i * pointByteSize + 3];
+                            colors[i] = new Color32(r, g, b, a);
+                        }
+
+                        toSetOff += 4;
+                    }
+                }
+
+                /*
+                 * for future reference.
+                else if (metaData.version == 2.0)
+                {
+                    byte[] buff = new byte[numPoints * 4];
+                    float[] f32 = new float[buff.Length / 4];
+
+                    int taipsais = (pointAttribute as PointAttributeV2_0).typeSize;
+
+                    double localOffset = 0;
+                    double scale = 1;
+
+                    // compute offset and scale to pack larger types into 32 bit floats
+                    if ((pointAttribute as PointAttributeV2_0).typeSize > 4)
+                    {
+                        long[] aminmax = (pointAttribute as PointAttributeV2_0).range;
+                        localOffset = aminmax[0];
+                        scale = 1 / (aminmax[1] - aminmax[0]);
+                        // this linq gymnastics is necessary for "future" types that have multiple values in minmax arrays. like "position".
+                        scale = 1 / ((pointAttribute as PointAttributeV2_0).max.OrderByDescending(f => f).First() - (pointAttribute as PointAttributeV2_0).min.OrderBy(f => f).First());
+                    }
+                }
+                */
+                offset += metaData.version == "2.0" ? (pointAttribute as PointAttributeV2_0).byteSize : toSetOff;
+            }
+
+            node.SetPoints(vertices, colors);
+        }
+
         private IEnumerator FindAndLoadFile(string dataRPath, PointCloudMetaData metaData, string id, string fileending,
             Action<byte[]> callback)
         {
@@ -244,7 +369,7 @@ namespace BAPointCloudRenderer.CloudController
                 callback.Invoke(www.downloadHandler.data);
             }
         }
-        
+
         /// <summary>
         /// Starts loading the point cloud. When the hierarchy is loaded it is registered at the corresponding point cloud set
         /// </summary>
