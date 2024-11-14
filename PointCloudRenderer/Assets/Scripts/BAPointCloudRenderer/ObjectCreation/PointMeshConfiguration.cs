@@ -1,6 +1,7 @@
 ﻿using BAPointCloudRenderer.CloudData;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace BAPointCloudRenderer.ObjectCreation
 {
@@ -13,6 +14,10 @@ namespace BAPointCloudRenderer.ObjectCreation
         /// If set to true, the Bounding Boxes of the individual octree nodes will be displayed.
         /// </summary>
         public bool displayLOD = false;
+
+        public bool usesParticles = false;
+        public ParticleSystem particles;
+        public bool forceToMultipleOfThree;
 
         private Material material;
         private HashSet<GameObject> gameObjectCollection = null;
@@ -30,14 +35,34 @@ namespace BAPointCloudRenderer.ObjectCreation
             {
                 foreach (GameObject go in gameObjectCollection)
                 {
-                    Utility.BBDraw.DrawBoundingBox(go.GetComponent<BoundingBoxComponent>().boundingBox, null, Color.red, false);
+                    Utility.BBDraw.DrawBoundingBox(go.GetComponent<BoundingBoxComponent>().boundingBox, null, Color.red,
+                        false);
                 }
             }
         }
 
-        public override GameObject CreateGameObject(string name, Vector3[] vertexData, Color[] colorData, BoundingBox boundingBox, Transform parent, string version, Vector3d translationV2)
+        public override GameObject CreateGameObject(string name, Vector3[] vertexData, Color[] colorData,
+            BoundingBox boundingBox, Transform parent, string version, Vector3d translationV2)
         {
             GameObject gameObject = new GameObject(name);
+
+            if (forceToMultipleOfThree)
+            {
+                // Convert the array to a List for dynamic removal
+                List<Vector3> vertexList = new List<Vector3>(vertexData);
+                List<Color> colorList = new List<Color>(colorData);
+
+                // Remove elements from the end until the count is a multiple of 3
+                while (vertexList.Count % 3 != 0)
+                {
+                    vertexList.RemoveAt(vertexList.Count - 1);
+                    colorList.RemoveAt(colorList.Count - 1);
+                }
+
+                // Convert back to an array if needed
+                vertexData = vertexList.ToArray();
+                colorData = colorList.ToArray();
+            }
 
             Mesh mesh = new Mesh();
 
@@ -48,14 +73,27 @@ namespace BAPointCloudRenderer.ObjectCreation
             renderer.receiveShadows = false;
             renderer.material = material;
 
-            int[] indecies = new int[vertexData.Length];
+            int[] indices = new int[vertexData.Length];
             for (int i = 0; i < vertexData.Length; ++i)
             {
-                indecies[i] = i;
+                indices[i] = i;
             }
+
             mesh.vertices = vertexData;
             mesh.colors = colorData;
-            mesh.SetIndices(indecies, MeshTopology.Points, 0);
+
+            if (usesParticles)
+            {
+                mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+                //Particle System
+                var particleSystem = Instantiate(particles, gameObject.transform);
+                var shape = particleSystem.shape;
+                shape.meshRenderer = renderer;
+
+                renderer.enabled = false;
+            }
+            else
+                mesh.SetIndices(indices, MeshTopology.Points, 0);
 
             //Set Translation
             if (version == "2.0")
@@ -73,7 +111,8 @@ namespace BAPointCloudRenderer.ObjectCreation
                 gameObject.transform.SetParent(parent, false);
             }
 
-            gameObject.AddComponent<BoundingBoxComponent>().boundingBox = boundingBox; ;
+            gameObject.AddComponent<BoundingBoxComponent>().boundingBox = boundingBox;
+
 
             if (gameObjectCollection != null)
             {
@@ -94,6 +133,7 @@ namespace BAPointCloudRenderer.ObjectCreation
             {
                 gameObjectCollection.Remove(gameObject);
             }
+
             if (gameObject != null)
             {
                 Destroy(gameObject.GetComponent<MeshFilter>().sharedMesh);

@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: cd0e77cfddee6704bb1d5c5efbe71e34,
+  m_LightingDataAsset: {fileID: 112000000, guid: 86506db8ae3e8e44594f39435eb43216,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 1218fee1e2a9b8a44bb26a4da6871077,
     type: 2}
@@ -315,6 +315,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &414155956
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 414155958}
+  - component: {fileID: 414155957}
+  m_Layer: 0
+  m_Name: PointMeshConfiguration
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &414155957
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414155956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c09d060416f5ed43bafe6da4649f26e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  displayLOD: 0
+  usesParticles: 1
+  particles: {fileID: 6802275023804369077, guid: edc4ad992ba17a64fa090932817ce9b7,
+    type: 3}
+  forceToMultipleOfThree: 1
+--- !u!4 &414155958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414155956}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &892373462
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,8 +499,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 830a9d4c15accb94ba7628d60d43cda9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cloudPath: D:\DTT\pointclouds\etteln_potree
-  streamingAssetsAsRoot: 0
+  cloudPath: etteln_potree
+  streamingAssetsAsRoot: 1
   setController: {fileID: 1311969388}
   loadOnStart: 1
 --- !u!4 &971097448
@@ -549,7 +598,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveCenterToTransformPosition: 1
   showBoundingBox: 1
-  meshConfiguration: {fileID: 394899952}
+  meshConfiguration: {fileID: 414155957}
+  Loader: {fileID: 0}
   pointBudget: 1000000
   minNodeSize: 10
   nodesLoadedPerFrame: 15
@@ -696,3 +746,4 @@ SceneRoots:
   - {fileID: 370522233}
   - {fileID: 1202055265}
   - {fileID: 246733522}
+  - {fileID: 414155958}
