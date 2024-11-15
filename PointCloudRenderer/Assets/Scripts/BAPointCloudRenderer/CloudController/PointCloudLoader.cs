@@ -156,7 +156,7 @@ namespace BAPointCloudRenderer.CloudController
         public IEnumerator LoadHierarchyOnly(PointCloudMetaData metaData, Action<Node> callback)
         {
             string dataRPath = metaData.cloudPath + metaData.octreeDir + "\\r\\";
-            Node rootNode = new Node("", metaData, metaData.tightBoundingBox_transformed, null);
+            Node rootNode = new Node("", metaData, metaData.boundingBox_transformed, null);
             var waitFor = StartCoroutine(LoadHierarchy(dataRPath, metaData, rootNode));
 
             yield return waitFor;
